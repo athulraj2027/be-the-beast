@@ -7,10 +7,11 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import GoogleSignInButton from "./GoogleSignInButton";
+import { useAuth } from "@/app/context/AuthContext";
 
 const Signinform = () => {
   const router = useRouter();
-
+  const { setIsLoggedIn } = useAuth();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
 
@@ -40,7 +41,7 @@ const Signinform = () => {
       );
       if (response.status === 200) {
         toast.success("User logged in successfully", { id: toastId });
-
+        setIsLoggedIn(true);
         router.push("/dashboard");
       } else {
         toast.error(response.data.message, { id: toastId });

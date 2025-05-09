@@ -1,10 +1,16 @@
 "use client";
+import { useAuth } from "@/app/context/AuthContext";
+import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import toast from "react-hot-toast";
 
 export const Navbar = () => {
+  const router = useRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const { isLoggedIn, setIsLoggedIn, checkAuth } = useAuth();
 
   useEffect(() => {
     const handleResize = () => {
@@ -16,12 +22,36 @@ export const Navbar = () => {
 
     return () => window.removeEventListener("resize", handleResize);
   }, []);
-  const options = [
+  const handleLogout = async () => {
+    try {
+      const toastId = toast.loading("Signing out");
+
+      await axios.get("/api/auth/logout");
+      setIsLoggedIn(false);
+      router.push("/");
+      toast.success("Signed out successfully", { id: toastId });
+    } catch (error) {
+      console.error("Logout failed", error);
+    }
+  };
+  const publicOptions = [
     { name: "About", link: "about" },
     { name: "Pricing", link: "pricing" },
     { name: "Contact Us", link: "contact" },
-    { name: "About", link: "about" },
+    { name: "Features", link: "features" },
   ];
+  const signedInOptions = [
+    { name: "Dashboard", link: "dashboard" },
+    { name: "Calendar", link: "calendar" },
+    { name: "Analysis", link: "analysis" },
+    { name: "Profile", link: "profile" },
+    {
+      name: "Logout",
+      action: handleLogout,
+    },
+  ];
+
+  const options = isLoggedIn ? signedInOptions : publicOptions;
   return (
     <div className="h-20 flex justify-between sm:justify-around items-center p-4 relative shadow-md">
       <h1 className="font-extrabold text-2xl sm:text-3xl">BeTheBeast</h1>
@@ -74,7 +104,11 @@ export const Navbar = () => {
                 <ul>
                   {options.map((item, index) => (
                     <li key={index} className="h-10">
-                      <Link href={item.link}>{item.name}</Link>
+                      {item.link ? (
+                        <Link href={item.link}>{item.name}</Link>
+                      ) : (
+                        <span onClick={item.action}>{item.name}</span>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -88,7 +122,11 @@ export const Navbar = () => {
         <ul className="flex gap-6">
           {options.map((item, index) => (
             <li key={index} className="hover:underline">
-              <Link href={item.link}>{item.name}</Link>
+              {item.link ? (
+                <Link href={item.link}>{item.name}</Link>
+              ) : (
+                <span onClick={item.action}>{item.name}</span>
+              )}
             </li>
           ))}
         </ul>
